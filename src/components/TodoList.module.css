@@ -96,6 +96,6 @@
     font-size: 14px;
 }
 
-.listItem button:hover {
-    background-color: #c82333;
+.listItem button:first-child {
+	margin-right: 20px;
 }
