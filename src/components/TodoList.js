@@ -1,4 +1,6 @@
+// TodoList.js
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from './TodoList.module.css';
 
@@ -7,8 +9,6 @@ const TodoList = () => {
 	const [newTodo, setNewTodo] = useState('');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isSort, setIsSort] = useState(false);
-	const [editingTodoId, setEditingTodoId] = useState(null);
-	const [editingTodoText, setEditingTodoText] = useState('');
 
 	useEffect(() => {
 		fetchTodos();
@@ -49,28 +49,6 @@ const TodoList = () => {
 		}
 	};
 
-	const updateTodoText = async (id) => {
-		try {
-			await axios.patch(`http://localhost:3005/todos/${id}`, {
-				title: editingTodoText,
-			});
-			setEditingTodoId(null);
-			setEditingTodoText('');
-			fetchTodos();
-		} catch (error) {
-			console.error('ошибка при обновлении текста дела:', error);
-		}
-	};
-
-	const deleteTodo = async (id) => {
-		try {
-			await axios.delete(`http://localhost:3005/todos/${id}`);
-			setTodos(todos.filter((todo) => todo.id !== id));
-		} catch (error) {
-			console.error('ошибка при удалении дела:', error);
-		}
-	};
-
 	const filteredTodos = todos.filter((todo) =>
 		todo.title.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
@@ -104,44 +82,20 @@ const TodoList = () => {
 			<ul className={styles.list}>
 				{sortedTodos.map((todo) => (
 					<li key={todo.id} className={styles.listItem}>
-						{editingTodoId === todo.id ? (
-							<>
-								<input
-									type="text"
-									value={editingTodoText}
-									onChange={(e) => setEditingTodoText(e.target.value)}
-								/>
-								<button onClick={() => updateTodoText(todo.id)}>
-									сохранить
-								</button>
-								<button onClick={() => setEditingTodoId(null)}>
-									отмена
-								</button>
-							</>
-						) : (
-							<>
-								<span
-									className={
-										todo.completed
-											? styles.completed
-											: styles.notCompleted
-									}
-									onClick={() =>
-										updateTodoStatus(todo.id, todo.completed)
-									}
-								>
-									{todo.title}
-								</span>
-								<div>
-									<button onClick={() => setEditingTodoId(todo.id)}>
-										изменить
-									</button>
-									<button onClick={() => deleteTodo(todo.id)}>
-										удалить
-									</button>
-								</div>
-							</>
-						)}
+						<Link to={`/task/${todo.id}`}>
+							<span
+								className={
+									todo.completed
+										? styles.completed
+										: styles.notCompleted
+								}
+								onClick={() => updateTodoStatus(todo.id, todo.completed)}
+							>
+								{todo.title.length > 25
+									? `${todo.title.substring(0, 25)}...`
+									: todo.title}
+							</span>
+						</Link>
 					</li>
 				))}
 			</ul>
