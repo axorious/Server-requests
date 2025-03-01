@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import styles from './TodoList.module.css';
+import {
+	fetchTodos,
+	addTodo,
+	updateTodoStatus,
+	updateTodoText,
+	deleteTodo,
+} from '../action';
+import { useSelector, useDispatch } from 'react-redux';
 
 const TodoList = () => {
-	const [todos, setTodos] = useState([]);
+	const dispatch = useDispatch();
+	const todos = useSelector((state) => state.todos.todos);
 	const [newTodo, setNewTodo] = useState('');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isSort, setIsSort] = useState(false);
@@ -11,64 +19,28 @@ const TodoList = () => {
 	const [editingTodoText, setEditingTodoText] = useState('');
 
 	useEffect(() => {
-		fetchTodos();
-	}, []);
+		dispatch(fetchTodos());
+	}, [dispatch]);
 
-	const fetchTodos = async () => {
-		try {
-			const response = await axios.get('http://localhost:3005/todos');
-			setTodos(response.data);
-		} catch (error) {
-			console.error('ошибка при загрузке данных', error);
-		}
-	};
-
-	const addTodo = async (e) => {
+	const handleAddTodo = (e) => {
 		e.preventDefault();
 		if (newTodo.trim() === '') return;
-		try {
-			const response = await axios.post('http://localhost:3005/todos', {
-				title: newTodo,
-				completed: false,
-			});
-			setTodos([...todos, response.data]);
-			setNewTodo('');
-		} catch (error) {
-			console.error('ошибка при добавлении дела:', error);
-		}
+		dispatch(addTodo(newTodo));
+		setNewTodo('');
 	};
 
-	const updateTodoStatus = async (id, completed) => {
-		try {
-			await axios.patch(`http://localhost:3005/todos/${id}`, {
-				completed: !completed,
-			});
-			fetchTodos();
-		} catch (error) {
-			console.error('ошибка при обновлении статуса дела:', error);
-		}
+	const handleUpdateTodoStatus = (id, completed) => {
+		dispatch(updateTodoStatus(id, completed));
 	};
 
-	const updateTodoText = async (id) => {
-		try {
-			await axios.patch(`http://localhost:3005/todos/${id}`, {
-				title: editingTodoText,
-			});
-			setEditingTodoId(null);
-			setEditingTodoText('');
-			fetchTodos();
-		} catch (error) {
-			console.error('ошибка при обновлении текста дела:', error);
-		}
+	const handleUpdateTodoText = (id) => {
+		dispatch(updateTodoText(id, editingTodoText));
+		setEditingTodoId(null);
+		setEditingTodoText('');
 	};
 
-	const deleteTodo = async (id) => {
-		try {
-			await axios.delete(`http://localhost:3005/todos/${id}`);
-			setTodos(todos.filter((todo) => todo.id !== id));
-		} catch (error) {
-			console.error('ошибка при удалении дела:', error);
-		}
+	const handleDeleteTodo = (id) => {
+		dispatch(deleteTodo(id));
 	};
 
 	const filteredTodos = todos.filter((todo) =>
@@ -82,7 +54,7 @@ const TodoList = () => {
 	return (
 		<div className={styles.container}>
 			<h1 className={styles.title}>Todo List</h1>
-			<form onSubmit={addTodo} className={styles.inputGroup}>
+			<form onSubmit={handleAddTodo} className={styles.inputGroup}>
 				<input
 					type="text"
 					value={newTodo}
@@ -111,7 +83,7 @@ const TodoList = () => {
 									value={editingTodoText}
 									onChange={(e) => setEditingTodoText(e.target.value)}
 								/>
-								<button onClick={() => updateTodoText(todo.id)}>
+								<button onClick={() => handleUpdateTodoText(todo.id)}>
 									сохранить
 								</button>
 								<button onClick={() => setEditingTodoId(null)}>
@@ -127,7 +99,7 @@ const TodoList = () => {
 											: styles.notCompleted
 									}
 									onClick={() =>
-										updateTodoStatus(todo.id, todo.completed)
+										handleUpdateTodoStatus(todo.id, todo.completed)
 									}
 								>
 									{todo.title}
@@ -136,7 +108,7 @@ const TodoList = () => {
 									<button onClick={() => setEditingTodoId(todo.id)}>
 										изменить
 									</button>
-									<button onClick={() => deleteTodo(todo.id)}>
+									<button onClick={() => handleDeleteTodo(todo.id)}>
 										удалить
 									</button>
 								</div>
