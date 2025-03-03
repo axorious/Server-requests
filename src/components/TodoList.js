@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from 'react-redux';
 const TodoList = () => {
 	const dispatch = useDispatch();
 	const todos = useSelector((state) => state.todos.todos);
+	const isLoading = useSelector((state) => state.todos.isLoading);
 	const [newTodo, setNewTodo] = useState('');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isSort, setIsSort] = useState(false);
@@ -43,9 +44,11 @@ const TodoList = () => {
 		dispatch(deleteTodo(id));
 	};
 
-	const filteredTodos = todos.filter((todo) =>
-		todo.title.toLowerCase().includes(searchTerm.toLowerCase()),
-	);
+	const filteredTodos = searchTerm
+		? todos.filter((todo) =>
+				todo.title.toLowerCase().includes(searchTerm.toLowerCase()),
+			)
+		: todos;
 
 	const sortedTodos = isSort
 		? [...filteredTodos].sort((a, b) => a.title.localeCompare(b.title))
@@ -54,6 +57,7 @@ const TodoList = () => {
 	return (
 		<div className={styles.container}>
 			<h1 className={styles.title}>Todo List</h1>
+			{isLoading && <div className={styles.loader}>Загрузка...</div>}
 			<form onSubmit={handleAddTodo} className={styles.inputGroup}>
 				<input
 					type="text"
